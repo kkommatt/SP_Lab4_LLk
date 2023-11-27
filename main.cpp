@@ -6,6 +6,7 @@
 #include <sstream>
 #include <algorithm>
 #include <memory>
+#include <fstream>
 
 class Grammar {
 private:
@@ -630,13 +631,28 @@ buildParsingTableK(const Grammar &grammar, std::map<std::string, std::set<std::s
 
 int main() {
     setlocale(LC_CTYPE, "Greek");
-    Grammar arithmetic_grammar({
-                                       {"A",  {"BA'"}},
-                                       {"A'", {"+BA'", "e"}},
-                                       {"B",  {"CB'"}},
-                                       {"B'", {"*CB'", "e"}},
-                                       {"C",  {"(A)",  "id"}}
-                               });
+    std::ifstream inputFile("grammarll1.txt");
+    if (!inputFile.is_open()) {
+        std::cerr << "Unable to open file\n";
+        return 1;
+    }
+
+    std::stringstream buffer;
+    buffer << inputFile.rdbuf();
+    std::string grammarText = buffer.str();
+    Grammar arithmetic_grammar = parseGrammarFromText(grammarText);
+
+    std::cout << "Rules of parsed grammar" << std::endl;
+    for (const auto &rule: arithmetic_grammar.getRules()) {
+        std::cout << rule.first << " -> ";
+        for (const auto &production: rule.second) {
+            std::cout << production;
+            if (&production != &rule.second.back()) { // Check if not the last element
+                std::cout << " | ";
+            }
+        }
+        std::cout << std::endl;
+    }
 
     std::map<std::string, std::set<std::string>> first_cache;
     std::map<std::string, std::set<std::string>> follow_cache;
@@ -687,27 +703,26 @@ int main() {
     }
     std::cout << std::endl;
 
-    std::string sample_grammar_text =
-            "A -> BA'\n"
-            "A' -> +BA' | e\n"
-            "B -> CB'\n"
-            "B' -> *CB' | e\n"
-            "C -> (A) | id\n";
 
-    Grammar parsed_grammar = parseGrammarFromText(sample_grammar_text);
-    std::cout << "Rules of parsed grammar" << std::endl;
-    for (const auto &rule: parsed_grammar.getRules()) {
-        std::cout << rule.first << " -> ";
-        for (const auto &production: rule.second) {
-            std::cout << production;
-            if (&production != &rule.second.back()) { // Check if not the last element
-                std::cout << " | ";
-            }
-        }
-        std::cout << std::endl;
+    std::ifstream tokensFile("tokens.txt");
+    if (!tokensFile.is_open()) {
+        std::cerr << "Unable to open tokens file\n";
+        return 1;
     }
 
-    std::vector<std::string> sample_tokens = {"(", "id", "+", "id", ")", "*", "id"};
+    std::string tokensString;
+    std::getline(tokensFile, tokensString);
+    std::vector<std::string> tokens;
+    std::istringstream stream(tokensString);
+    std::string token;
+    char delimiter = ' ';
+
+    while (std::getline(stream, token, delimiter)) {
+
+        tokens.push_back(token);
+    }
+
+    std::vector<std::string> sample_tokens = tokens;
     RecursiveDescentParser parser(sample_tokens);
     bool parse_result = parser.parse();
     std::cout << "Is parsed?" << std::endl;
@@ -742,11 +757,29 @@ int main() {
     }
 
     // Define a grammar for LL(2) analysis
-    Grammar ll2_grammar({
-                                {"S", {"aAd", "bBd", "aBf", "bAf"}},
-                                {"A", {"c"}},
-                                {"B", {"c"}}
-                        });
+    std::ifstream inputFilek("grammarllk.txt");
+    if (!inputFilek.is_open()) {
+        std::cerr << "Unable to open file\n";
+        return 1;
+    }
+
+    std::stringstream bufferk;
+    bufferk << inputFilek.rdbuf();
+    std::string grammarTextk = bufferk.str();
+    Grammar ll2_grammar = parseGrammarFromText(grammarTextk);
+
+    std::cout << "Rules of parsed grammar" << std::endl;
+    for (const auto &rule: ll2_grammar.getRules()) {
+        std::cout << rule.first << " -> ";
+        for (const auto &production: rule.second) {
+            std::cout << production;
+            if (&production != &rule.second.back()) {
+                std::cout << " | ";
+            }
+        }
+        std::cout << std::endl;
+    }
+
 
     std::map<std::string, std::set<std::string>> first_k_cache_ll2, first_k_sets_ll2, follow_cache_ll2, follow_sets_ll2;
 
