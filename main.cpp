@@ -379,7 +379,7 @@ public:
                 }
             }
             return false;
-        } else if (consume("id")) {
+        } else if (consume("a")) {
             return true;
         }
         return false;
@@ -481,8 +481,8 @@ public:
                 return std::make_shared<Node>("C", std::vector<std::shared_ptr<Node>>{a_node});
             }
             return nullptr;
-        } else if (consume("id")) {
-            return std::make_shared<Node>("C", std::vector<std::shared_ptr<Node>>{std::make_shared<Node>("id")});
+        } else if (consume("a")) {
+            return std::make_shared<Node>("C", std::vector<std::shared_ptr<Node>>{std::make_shared<Node>("a")});
         }
         return nullptr;
     }
